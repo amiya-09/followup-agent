@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import pool from "@/lib/db";
 
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: leadId } = await params;
@@ -64,4 +64,29 @@ export async function GET(
         }
       : null,
   });
+}
+
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id: leadId } = await params;
+  const body = await request.json();
+  const { status } = body;
+
+  const validStatuses = ["new", "contacted", "replied", "follow_up_sent", "cold", "won", "lost"];
+  if (!status || !validStatuses.includes(status)) {
+    return NextResponse.json({ error: "Invalid or missing status" }, { status: 400 });
+  }
+
+  const result = await pool.query(
+    `UPDATE leads SET status = $1 WHERE id = $2 RETURNING *`,
+    [status, leadId]
+  );
+
+  if (result.rows.length === 0) {
+    return NextResponse.json({ error: "Lead not found" }, { status: 404 });
+  }
+
+  return NextResponse.json({ lead: result.rows[0] });
 }

@@ -31,9 +31,16 @@ _Last updated: Day 2, cleaning up duplicate seed data_
 - [x] GET /api/queue — verified: correct scores/tiers/sort order for all 3 seeded leads
 - [x] GET /api/leads/:id — verified full detail view for Jordan (profile, thread, signal, draft)
 - [x] PATCH /api/drafts/:id, POST /approve, POST /dismiss — verified full edit→approve→send flow
-- [ ] PATCH /api/drafts/:id, POST /approve, POST /dismiss
-- [ ] GET /api/leads/:id/signals
+- [x] PATCH /api/leads/:id — verified Sam marked 'won'
+- [x] GET /api/leads/:id/signals — verified Jordan's signal history returns correctly
 
-## Day 5 — Frontend ⬜ NOT STARTED
-- [ ] Priority Queue Dashboard
-- [ ] Lead Detail / Review & Send view
+## Day 5 — Frontend 🔄 IN PROGRESS
+- [ ] Priority Queue Dashboard (app/page.tsx)
+- [ ] Lead Detail / Review & Send view (app/leads/[id]/page.tsx)
+
+## Stretch — POST /api/sync ⬜ DEFERRED
+- Not needed for the recorded demo — spec's /api/demo/seed exists specifically so the
+  demo never depends on a live inbox
+- Requires real Gmail OAuth (Cloud Console project, consent screen, refresh tokens) —
+  meaningfully riskier than anything built so far
+- Only build if time remains after the dashboard is fully working
