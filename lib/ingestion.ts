@@ -1,4 +1,5 @@
 import pool from "./db";
+import { runAgentPipeline } from "./agents/pipeline";
 
 interface IngestParams {
   userId: string;
@@ -49,6 +50,16 @@ export async function ingestMessage(params: IngestParams) {
       `UPDATE leads SET last_reply_at = $1, status = 'replied' WHERE id = $2`,
       [sentAt, lead.id]
     );
+
+    if (message) {
+      await runAgentPipeline({
+        messageId: message.id,
+        leadId: lead.id,
+        bodyText,
+        leadName: lead.name,
+        leadCompany: lead.company,
+      });
+    }
   } else {
     await pool.query(
       `UPDATE leads SET last_contact_at = $1, status = 'contacted' WHERE id = $2`,

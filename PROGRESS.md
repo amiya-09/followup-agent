@@ -19,12 +19,12 @@ _Last updated: Day 2, cleaning up duplicate seed data_
 - [x] Database cleaned of stray/duplicate data
 - [x] Seed re-run and verified clean (exactly 3 leads, correct statuses)
 
-## Day 3 — Agent Orchestration Layer 🔄 IN PROGRESS
-- [ ] lib/agents/summarize.ts — Summarization Agent
-- [ ] lib/agents/draft.ts — Draft Generation Agent
-- [ ] lib/agents/pipeline.ts — chains them, writes to signals + followup_drafts
-- [ ] Wired into lib/ingestion.ts so every inbound message auto-triggers the pipeline
-- [ ] Verified: seeded inbound replies produce real signals + drafts in the DB
+## Day 3 — Agent Orchestration Layer  ✅ DONE
+- [x] lib/agents/summarize.ts — Summarization Agent
+- [x] lib/agents/draft.ts — Draft Generation Agent
+- [x] lib/agents/pipeline.ts — chains them, writes to signals + followup_drafts
+- [x] Wired into lib/ingestion.ts so every inbound message auto-triggers the pipeline
+- [x] Verified: seeded inbound replies produce real signals + drafts in the DB
 
 ## Day 4 — API Layer ⬜ NOT STARTED
 - [ ] GET /api/queue (+ priorityScore function)
