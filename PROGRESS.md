@@ -26,7 +26,7 @@ _Last updated: Day 2, cleaning up duplicate seed data_
 - [x] Wired into lib/ingestion.ts so every inbound message auto-triggers the pipeline
 - [x] Verified: seeded inbound replies produce real signals + drafts in the DB
 
-## Day 4 — API Layer ⬜ NOT STARTED
+## Day 4 — API Layer ✅ DONE
 - [x] lib/priorityScore.ts — base urgency + tag boosts, verified against real seeded data
 - [x] GET /api/queue — verified: correct scores/tiers/sort order for all 3 seeded leads
 - [x] GET /api/leads/:id — verified full detail view for Jordan (profile, thread, signal, draft)
