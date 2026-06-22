@@ -30,7 +30,7 @@ _Last updated: Day 2, cleaning up duplicate seed data_
 - [x] lib/priorityScore.ts — base urgency + tag boosts, verified against real seeded data
 - [x] GET /api/queue — verified: correct scores/tiers/sort order for all 3 seeded leads
 - [x] GET /api/leads/:id — verified full detail view for Jordan (profile, thread, signal, draft)
-- [ ] PATCH /api/leads/:id
+- [x] PATCH /api/drafts/:id, POST /approve, POST /dismiss — verified full edit→approve→send flow
 - [ ] PATCH /api/drafts/:id, POST /approve, POST /dismiss
 - [ ] GET /api/leads/:id/signals
 
