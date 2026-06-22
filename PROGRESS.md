@@ -27,21 +27,13 @@ _Last updated: Day 2, cleaning up duplicate seed data_
 - [x] Verified: seeded inbound replies produce real signals + drafts in the DB
 
 ## Day 4 — API Layer ⬜ NOT STARTED
-- [ ] GET /api/queue (+ priorityScore function)
+- [x] lib/priorityScore.ts — base urgency + tag boosts, verified against real seeded data
+- [x] GET /api/queue — verified: correct scores/tiers/sort order for all 3 seeded leads
 - [ ] GET /api/leads/:id
 - [ ] PATCH /api/leads/:id
-- [ ] PATCH /api/drafts/:id, /approve, /dismiss
+- [ ] PATCH /api/drafts/:id, POST /approve, POST /dismiss
 - [ ] GET /api/leads/:id/signals
 
 ## Day 5 — Frontend ⬜ NOT STARTED
 - [ ] Priority Queue Dashboard
 - [ ] Lead Detail / Review & Send view
-
-## Notes
-- A teammate split was attempted and abandoned (solo build from here on).
-  lib/types.ts and lib/mockData.ts may exist from that — harmless, ignore or delete.
-- 8 extra stray leads (Linear, Stripe, Notion, Vercel, Figma, GitHub, Shopify, +duplicate
-  Jordan Lee) appeared in the DB from an untracked run — likely an earlier non-idempotent
-  seed created a second "founder" user, and since leads are unique per-user-not-globally,
-  it got its own full set of leads. Fixed by truncating and reseeding from the single
-  canonical route.ts above.
