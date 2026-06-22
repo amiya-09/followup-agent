@@ -29,7 +29,7 @@ _Last updated: Day 2, cleaning up duplicate seed data_
 ## Day 4 — API Layer ⬜ NOT STARTED
 - [x] lib/priorityScore.ts — base urgency + tag boosts, verified against real seeded data
 - [x] GET /api/queue — verified: correct scores/tiers/sort order for all 3 seeded leads
-- [ ] GET /api/leads/:id
+- [x] GET /api/leads/:id — verified full detail view for Jordan (profile, thread, signal, draft)
 - [ ] PATCH /api/leads/:id
 - [ ] PATCH /api/drafts/:id, POST /approve, POST /dismiss
 - [ ] GET /api/leads/:id/signals
