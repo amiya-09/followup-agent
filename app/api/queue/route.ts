@@ -8,6 +8,7 @@ export async function GET() {
       l.id AS lead_id,
       l.name,
       l.company,
+      l.status,
       l.last_reply_at,
       s.summary_text,
       s.recommended_action,
@@ -35,7 +36,9 @@ export async function GET() {
       ? Math.round((Date.now() - new Date(row.last_reply_at).getTime()) / (1000 * 60 * 60))
       : null;
 
-    const { score, tier } = computePriorityScore(hoursSinceReply, row.signal_tags ?? []);
+    const { score, tier } = row.status === "replied"
+      ? computePriorityScore(hoursSinceReply, row.signal_tags ?? [])
+      : { score: 0, tier: "low" as const };
 
     return {
       leadId: row.lead_id,

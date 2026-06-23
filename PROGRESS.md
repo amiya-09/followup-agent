@@ -34,9 +34,17 @@ _Last updated: Day 2, cleaning up duplicate seed data_
 - [x] PATCH /api/leads/:id — verified Sam marked 'won'
 - [x] GET /api/leads/:id/signals — verified Jordan's signal history returns correctly
 
-## Day 5 — Frontend 🔄 IN PROGRESS
-- [ ] Priority Queue Dashboard (app/page.tsx)
-- [ ] Lead Detail / Review & Send view (app/leads/[id]/page.tsx)
+## Day 5 — Frontend ✅ DONE
+- [x] Priority Queue Dashboard — verified live against real seeded + agent-generated data
+- [x] Lead Detail / Review & Send view — verified edit → approve → send flow
+- [x] Bug fix: draft lock-state now reads from server truth (draft.status), re-fetches after actions
+- [x] Bug fix: approve endpoint now aborts instead of silently "succeeding" if message insert fails
+- [x] Bug fix: priorityScore only scores leads with status 'replied' — handled leads correctly drop to 0/low
+
+## 🏁 MILESTONE — Full dry run, hand-verified, top to bottom ✅ DONE
+Dashboard → click critical lead → edit draft → approve & send → thread/badge/score all
+update live → back to queue → score correctly reflects resolved status. No agents, no
+scripts — manually walked through and confirmed by eye.
 
 ## Stretch — POST /api/sync ⬜ DEFERRED
 - Not needed for the recorded demo — spec's /api/demo/seed exists specifically so the

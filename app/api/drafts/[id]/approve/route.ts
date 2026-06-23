@@ -29,10 +29,7 @@ export async function POST(
   const sendText = draft.final_text ?? draft.draft_text;
   const sentAt = new Date().toISOString();
 
-  // This records the send as a real outbound message in the thread.
-  // NOTE: this does not actually call Gmail yet — that's the real email
-  // integration, built later. This is the placeholder "send."
-  await ingestMessage({
+  const { message } = await ingestMessage({
     userId: await getUserIdForLead(draft.lead_id),
     leadEmail: draft.email,
     leadName: draft.name,
@@ -43,6 +40,13 @@ export async function POST(
     sentAt,
     gmailMessageId: `approved-draft-${draftId}`,
   });
+
+  if (!message) {
+    return NextResponse.json(
+      { error: "Could not record the outbound message — this draft may have already been sent." },
+      { status: 409 }
+    );
+  }
 
   // ingestMessage sets status to 'contacted' for outbound — override to the
   // more specific status now that we know this was a follow-up send.
