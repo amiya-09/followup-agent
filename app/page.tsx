@@ -24,24 +24,80 @@ const TIER_STYLES: Record<string, { bar: string; text: string; label: string }> 
 export default function QueuePage() {
   const [leads, setLeads] = useState<QueueItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [session, setSession] = useState<{ user?: { name?: string; email?: string } } | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/queue")
       .then((res) => res.json())
       .then((data) => setLeads(data.leads))
       .catch(() => setError("Couldn't load the queue. Is the dev server running?"));
+
+    fetch("/api/auth/session")
+      .then((res) => res.json())
+      .then(setSession)
+      .catch(() => {});
   }, []);
+
+  async function handleSync() {
+    setSyncing(true);
+    setSyncStatus(null);
+    try {
+      const res = await fetch("/api/sync", { method: "POST" });
+      const data = await res.json();
+      setSyncStatus(`${data.newMessages ?? 0} new messages, ${data.leadsUpdated ?? 0} leads updated`);
+      const qRes = await fetch("/api/queue");
+      const qData = await qRes.json();
+      setLeads(qData.leads);
+      setTimeout(() => setSyncStatus(null), 4000);
+    } catch {
+      setSyncStatus("Sync failed — check console");
+    } finally {
+      setSyncing(false);
+    }
+  }
 
   return (
     <main className="min-h-screen px-6 py-10 md:px-12">
-      <header className="mb-10 flex items-baseline justify-between border-b border-white/10 pb-6">
-        <div>
-          <p className="font-data text-xs tracking-widest text-[#5B6472] uppercase">
-            Follow-up Agent
-          </p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">Priority Queue</h1>
+      <header className="mb-10 border-b border-white/10 pb-6">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="font-data text-xs tracking-widest text-[#5B6472] uppercase">
+              Follow-up Agent
+            </p>
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight">Priority Queue</h1>
+          </div>
+          {session?.user?.email && (
+            <div className="font-data flex items-center gap-3 text-xs text-[#5B6472]">
+              <span>{session.user.email}</span>
+              <a
+                href="/api/auth/signout"
+                className="rounded border border-white/10 px-2 py-1 transition hover:text-[#F4F1EA]"
+              >
+                Sign out
+              </a>
+            </div>
+          )}
         </div>
-        {leads && <p className="font-data text-sm text-[#5B6472]">{leads.length} leads</p>}
+        <div className="mt-4 flex items-center gap-4">
+          <button
+            onClick={handleSync}
+            disabled={syncing}
+            className="font-data rounded-md border border-white/10 px-3 py-1.5 text-xs tracking-wide text-[#5B6472] uppercase transition hover:border-white/25 hover:text-[#F4F1EA] disabled:opacity-40"
+          >
+            {syncing ? "Syncing…" : "Sync inbox"}
+          </button>
+          {syncStatus && (
+            <span className="font-data text-xs text-[#6EE7B7]">↑ {syncStatus}</span>
+          )}
+          {leads && !syncStatus && (
+            <span className="font-data text-xs text-[#5B6472] ml-auto">{leads.length} leads</span>
+          )}
+          {leads && syncStatus && (
+            <span className="font-data text-xs text-[#5B6472] ml-auto">{leads.length} leads</span>
+          )}
+        </div>
       </header>
 
       {error && <p className="text-[#FF4D4D]">{error}</p>}

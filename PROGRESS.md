@@ -68,3 +68,12 @@ scripts — manually walked through and confirmed by eye.
 - [x] Verified: real email sent and received in a separate live inbox
 
 ## 🏁 FULL REAL PIPELINE — auth → real inbox → AI agents → real send ✅ DONE
+
+## Demo Polish ✅ DONE
+- [x] Sync inbox button in queue header — POST /api/sync, live status line, auto-refresh
+- [x] Signed-in user email + Sign out link in header
+- [x] DB truncated and reseeded to pristine 3-lead demo state
+- [x] Verified against real screenshot: Jordan 62/critical, Priya 31/medium, Sam 0/low
+      (corrected two inaccurate claims in Claude Code's own summary before trusting them)
+
+## 🏁 PROJECT STATUS: feature-complete, demo-ready
