@@ -1,26 +1,27 @@
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
-import { ingestMessage } from "@/lib/ingestion";
+import { ingestMessage, getOrCreateUserByEmail } from "@/lib/ingestion";
 import { auth } from "@/auth";
 import { sendMessage } from "@/lib/gmail";
 
-async function getUserIdForLead(leadId: string): Promise<string> {
-  const result = await pool.query(`SELECT user_id FROM leads WHERE id = $1`, [leadId]);
-  return result.rows[0].user_id;
-}
-
 export async function POST(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: draftId } = await params;
+
+  const session = await auth();
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+  const user = await getOrCreateUserByEmail(session.user.email, session.user.name ?? null);
 
   const draftResult = await pool.query(
     `SELECT fd.*, l.email, l.name, l.company
      FROM followup_drafts fd
      JOIN leads l ON l.id = fd.lead_id
-     WHERE fd.id = $1`,
-    [draftId]
+     WHERE fd.id = $1 AND l.user_id = $2`,
+    [draftId, user.id]
   );
   const draft = draftResult.rows[0];
 
@@ -32,7 +33,7 @@ export async function POST(
   const sentAt = new Date().toISOString();
 
   const { message } = await ingestMessage({
-    userId: await getUserIdForLead(draft.lead_id),
+    userId: user.id,
     leadEmail: draft.email,
     leadName: draft.name,
     leadCompany: draft.company,
@@ -50,8 +51,6 @@ export async function POST(
     );
   }
 
-  // ingestMessage sets status to 'contacted' for outbound — override to the
-  // more specific status now that we know this was a follow-up send.
   await pool.query(`UPDATE leads SET status = 'follow_up_sent' WHERE id = $1`, [draft.lead_id]);
 
   await pool.query(
@@ -62,7 +61,6 @@ export async function POST(
   let emailSent = false;
   let emailError: string | null = null;
   try {
-    const session = await auth();
     const accessToken = (session as any)?.accessToken;
     if (!accessToken) throw new Error("No active Google session to send from");
 

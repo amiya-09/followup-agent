@@ -38,15 +38,22 @@ export default function LeadDetailPage() {
   const { id } = useParams<{ id: string }>();
 
   const [data, setData] = useState<LeadDetail | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [draftText, setDraftText] = useState("");
-  const [submitting, setSubmitting] = useState<"approve" | "dismiss" | null>(null);
+  const [submitting, setSubmitting] = useState<"approve" | "dismiss" | "status" | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const loadLead = useCallback(async () => {
     const res = await fetch(`/api/leads/${id}`);
     const json = await res.json();
-    if (!res.ok || !json.lead) return;
-    setData(json as LeadDetail);
+
+    if (!res.ok || json.error) {
+      setLoadError(json.error ?? "Could not load this lead.");
+      return;
+    }
+
+    setLoadError(null);
+    setData(json);
     setDraftText(json.draft?.finalText ?? json.draft?.draftText ?? "");
   }, [id]);
 
@@ -89,6 +96,36 @@ export default function LeadDetailPage() {
     }
   }
 
+  async function handleStatusChange(status: string) {
+    if (!data?.lead) return;
+    setSubmitting("status");
+    setErrorMsg(null);
+    try {
+      const res = await fetch(`/api/leads/${data.lead.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) throw new Error("status update failed");
+      await loadLead();
+    } catch {
+      setErrorMsg("Couldn't update the lead's status. Try again.");
+    } finally {
+      setSubmitting(null);
+    }
+  }
+
+  if (loadError) {
+    return (
+      <main className="min-h-screen px-6 py-10 md:px-12">
+        <Link href="/" className="font-data text-xs text-[#5B6472] hover:text-[#F4F1EA]">
+          ← back to queue
+        </Link>
+        <p className="mt-6 text-sm text-[#FF4D4D]">{loadError}</p>
+      </main>
+    );
+  }
+
   if (!data) {
     return (
       <main className="min-h-screen px-6 py-10 md:px-12">
@@ -111,9 +148,34 @@ export default function LeadDetailPage() {
           <h1 className="text-2xl font-semibold tracking-tight">{lead.name ?? "Unknown lead"}</h1>
           <p className="text-sm text-[#5B6472]">{lead.company} · {lead.email}</p>
         </div>
-        <span className="font-data rounded border border-white/10 px-2 py-1 text-[11px] tracking-wider text-[#5B6472] uppercase">
-          {STATUS_LABEL[lead.status] ?? lead.status}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="font-data rounded border border-white/10 px-2 py-1 text-[11px] tracking-wider text-[#5B6472] uppercase">
+            {STATUS_LABEL[lead.status] ?? lead.status}
+          </span>
+          <div className="flex gap-1">
+            <button
+              onClick={() => handleStatusChange("won")}
+              disabled={submitting !== null}
+              className="font-data rounded border border-white/10 px-2 py-1 text-[10px] tracking-wider text-[#6EE7B7] uppercase transition hover:border-[#6EE7B7]/50 disabled:opacity-50"
+            >
+              Won
+            </button>
+            <button
+              onClick={() => handleStatusChange("lost")}
+              disabled={submitting !== null}
+              className="font-data rounded border border-white/10 px-2 py-1 text-[10px] tracking-wider text-[#FF4D4D] uppercase transition hover:border-[#FF4D4D]/50 disabled:opacity-50"
+            >
+              Lost
+            </button>
+            <button
+              onClick={() => handleStatusChange("cold")}
+              disabled={submitting !== null}
+              className="font-data rounded border border-white/10 px-2 py-1 text-[10px] tracking-wider text-[#5B6472] uppercase transition hover:text-[#F4F1EA] disabled:opacity-50"
+            >
+              Cold
+            </button>
+          </div>
+        </div>
       </header>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">

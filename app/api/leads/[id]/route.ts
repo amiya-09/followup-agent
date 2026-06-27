@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
+import { auth } from "@/auth";
+import { getOrCreateUserByEmail } from "@/lib/ingestion";
 
 export async function GET(
   _request: Request,
@@ -7,10 +9,16 @@ export async function GET(
 ) {
   const { id: leadId } = await params;
 
+  const session = await auth();
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+  const user = await getOrCreateUserByEmail(session.user.email, session.user.name ?? null);
+
   const leadResult = await pool.query(
     `SELECT id, name, company, status, email, last_contact_at, last_reply_at, created_at
-     FROM leads WHERE id = $1`,
-    [leadId]
+     FROM leads WHERE id = $1 AND user_id = $2`,
+    [leadId, user.id]
   );
   const lead = leadResult.rows[0];
 
@@ -71,6 +79,13 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: leadId } = await params;
+
+  const session = await auth();
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+  const user = await getOrCreateUserByEmail(session.user.email, session.user.name ?? null);
+
   const body = await request.json();
   const { status } = body;
 
@@ -80,8 +95,8 @@ export async function PATCH(
   }
 
   const result = await pool.query(
-    `UPDATE leads SET status = $1 WHERE id = $2 RETURNING *`,
-    [status, leadId]
+    `UPDATE leads SET status = $1 WHERE id = $2 AND user_id = $3 RETURNING *`,
+    [status, leadId, user.id]
   );
 
   if (result.rows.length === 0) {

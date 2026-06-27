@@ -76,4 +76,9 @@ scripts — manually walked through and confirmed by eye.
 - [x] Verified against real screenshot: Jordan 62/critical, Priya 31/medium, Sam 0/low
       (corrected two inaccurate claims in Claude Code's own summary before trusting them)
 
-## 🏁 PROJECT STATUS: feature-complete, demo-ready
+## Security Fix — Per-User Data Scoping ✅ DONE
+- [x] All API routes now scope queries to the logged-in user via getOrCreateUserByEmail
+- [x] Verified with a real second Google account: queue correctly shows 0 leads,
+      confirming no cross-account data leakage
+- [x] Lead-detail crash fixed (graceful error message instead of raw JS error)
+- [x] Manual status override (Won/Lost/Cold) added to lead detail page UI

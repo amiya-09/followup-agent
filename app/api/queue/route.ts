@@ -1,15 +1,24 @@
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
+import { auth } from "@/auth";
+import { getOrCreateUserByEmail } from "@/lib/ingestion";
 import { computePriorityScore } from "@/lib/priorityScore";
 
 export async function GET() {
-  const result = await pool.query(`
+  const session = await auth();
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+  const user = await getOrCreateUserByEmail(session.user.email, session.user.name ?? null);
+
+  const result = await pool.query(
+    `
     SELECT
       l.id AS lead_id,
       l.name,
       l.company,
-      l.status,
       l.last_reply_at,
+      l.status,
       s.summary_text,
       s.recommended_action,
       s.signal_tags,
@@ -29,16 +38,20 @@ export async function GET() {
       ORDER BY created_at DESC
       LIMIT 1
     ) d ON true
-  `);
+    WHERE l.user_id = $1
+  `,
+    [user.id]
+  );
 
   const leads = result.rows.map((row) => {
     const hoursSinceReply = row.last_reply_at
       ? Math.round((Date.now() - new Date(row.last_reply_at).getTime()) / (1000 * 60 * 60))
       : null;
 
-    const { score, tier } = row.status === "replied"
-      ? computePriorityScore(hoursSinceReply, row.signal_tags ?? [])
-      : { score: 0, tier: "low" as const };
+    const { score, tier } =
+      row.status === "replied"
+        ? computePriorityScore(hoursSinceReply, row.signal_tags ?? [])
+        : { score: 0, tier: "low" as const };
 
     return {
       leadId: row.lead_id,

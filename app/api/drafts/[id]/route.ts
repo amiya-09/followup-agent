@@ -1,11 +1,20 @@
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
+import { auth } from "@/auth";
+import { getOrCreateUserByEmail } from "@/lib/ingestion";
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: draftId } = await params;
+
+  const session = await auth();
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+  const user = await getOrCreateUserByEmail(session.user.email, session.user.name ?? null);
+
   const body = await request.json();
   const { finalText } = body;
 
@@ -14,9 +23,12 @@ export async function PATCH(
   }
 
   const result = await pool.query(
-    `UPDATE followup_drafts SET final_text = $1, status = 'edited'
-     WHERE id = $2 RETURNING *`,
-    [finalText, draftId]
+    `UPDATE followup_drafts fd
+     SET final_text = $1, status = 'edited'
+     FROM leads l
+     WHERE fd.id = $2 AND fd.lead_id = l.id AND l.user_id = $3
+     RETURNING fd.*`,
+    [finalText, draftId, user.id]
   );
 
   if (result.rows.length === 0) {

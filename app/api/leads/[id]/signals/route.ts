@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
+import { auth } from "@/auth";
+import { getOrCreateUserByEmail } from "@/lib/ingestion";
 
 export async function GET(
   _request: Request,
@@ -7,10 +9,19 @@ export async function GET(
 ) {
   const { id: leadId } = await params;
 
+  const session = await auth();
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+  const user = await getOrCreateUserByEmail(session.user.email, session.user.name ?? null);
+
   const result = await pool.query(
-    `SELECT id, sentiment, summary_text, signal_tags, recommended_action, confidence, created_at
-     FROM signals WHERE lead_id = $1 ORDER BY created_at DESC`,
-    [leadId]
+    `SELECT s.id, s.sentiment, s.summary_text, s.signal_tags, s.recommended_action, s.confidence, s.created_at
+     FROM signals s
+     JOIN leads l ON l.id = s.lead_id
+     WHERE s.lead_id = $1 AND l.user_id = $2
+     ORDER BY s.created_at DESC`,
+    [leadId, user.id]
   );
 
   return NextResponse.json({
