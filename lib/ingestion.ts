@@ -52,13 +52,19 @@ export async function ingestMessage(params: IngestParams) {
     );
 
     if (message) {
-      await runAgentPipeline({
-        messageId: message.id,
-        leadId: lead.id,
-        bodyText,
-        leadName: lead.name,
-        leadCompany: lead.company,
-      });
+      try {
+        await runAgentPipeline({
+          messageId: message.id,
+          leadId: lead.id,
+          bodyText,
+          leadName: lead.name,
+          leadCompany: lead.company,
+        });
+      } catch (err) {
+        console.error(`Agent pipeline failed for message ${message.id}:`, err);
+        // Message is still ingested even if the AI pipeline fails — visible in the
+        // thread, just without an auto-generated signal/draft for this one message.
+      }
     }
   } else {
     await pool.query(
@@ -68,4 +74,15 @@ export async function ingestMessage(params: IngestParams) {
   }
 
   return { lead, message };
+}
+
+export async function getOrCreateUserByEmail(email: string, name?: string | null) {
+  const existing = await pool.query(`SELECT * FROM users WHERE email = $1`, [email]);
+  if (existing.rows[0]) return existing.rows[0];
+
+  const inserted = await pool.query(
+    `INSERT INTO users (email, name, gmail_connected) VALUES ($1, $2, true) RETURNING *`,
+    [email, name ?? null]
+  );
+  return inserted.rows[0];
 }

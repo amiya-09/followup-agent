@@ -54,11 +54,17 @@ scripts — manually walked through and confirmed by eye.
 - [x] Verified: visiting localhost:3001 redirects to real Google sign-in, consent screen
       lists Gmail permissions, lands back on authenticated dashboard
 
-## Real Pipeline — Step 2: POST /api/sync 🔄 IN PROGRESS
+## Real Pipeline — Step 2: POST /api/sync ✅ DONE
+- [x] lib/gmail.ts — listUnreadMessages, getMessage, markRead, MIME parsing helpers
+- [x] app/api/sync/route.ts — pulls unread Gmail, runs ingestMessage, auto-fires agents
+- [x] Robustness fix: AI pipeline failures no longer poison the whole message ingest
+- [x] Verified against real Gmail: 20 real messages synced, 14 new leads created,
+      signals/drafts generated correctly (gmail.modify scope fix resolved mark-read errors)
 
-## Stretch — POST /api/sync ⬜ DEFERRED
-- Not needed for the recorded demo — spec's /api/demo/seed exists specifically so the
-  demo never depends on a live inbox
-- Requires real Gmail OAuth (Cloud Console project, consent screen, refresh tokens) —
-  meaningfully riskier than anything built so far
-- Only build if time remains after the dashboard is fully working
+## Real Pipeline — Step 3: Real Gmail Send on Approve ✅ DONE
+- [x] lib/gmail.ts — sendMessage (RFC 2822 construction, base64url encoding)
+- [x] app/api/drafts/[id]/approve/route.ts — real Gmail send after DB write, with
+      explicit emailSent/emailError reporting instead of silent failure
+- [x] Verified: real email sent and received in a separate live inbox
+
+## 🏁 FULL REAL PIPELINE — auth → real inbox → AI agents → real send ✅ DONE

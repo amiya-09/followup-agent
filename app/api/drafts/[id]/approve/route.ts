@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
 import { ingestMessage } from "@/lib/ingestion";
+import { auth } from "@/auth";
+import { sendMessage } from "@/lib/gmail";
 
 async function getUserIdForLead(leadId: string): Promise<string> {
   const result = await pool.query(`SELECT user_id FROM leads WHERE id = $1`, [leadId]);
@@ -57,5 +59,23 @@ export async function POST(
     [sentAt, draftId]
   );
 
-  return NextResponse.json({ status: "sent", sentAt });
+  let emailSent = false;
+  let emailError: string | null = null;
+  try {
+    const session = await auth();
+    const accessToken = (session as any)?.accessToken;
+    if (!accessToken) throw new Error("No active Google session to send from");
+
+    await sendMessage(accessToken, {
+      to: draft.email,
+      subject: "Re: following up",
+      body: sendText,
+    });
+    emailSent = true;
+  } catch (err) {
+    console.error(`Real Gmail send failed for draft ${draftId}:`, err);
+    emailError = (err as Error).message;
+  }
+
+  return NextResponse.json({ status: "sent", sentAt, emailSent, ...(emailError ? { emailError } : {}) });
 }
