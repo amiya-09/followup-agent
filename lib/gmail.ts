@@ -1,7 +1,16 @@
 const GMAIL_BASE = "https://gmail.googleapis.com/gmail/v1/users/me";
 
+function getRecentDateFilter(daysBack: number): string {
+  const cutoff = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000);
+  const yyyy = cutoff.getFullYear();
+  const mm = String(cutoff.getMonth() + 1).padStart(2, "0");
+  const dd = String(cutoff.getDate()).padStart(2, "0");
+  return `${yyyy}/${mm}/${dd}`;
+}
+
 export async function listUnreadMessages(accessToken: string, maxResults = 20) {
-  const url = `${GMAIL_BASE}/messages?q=${encodeURIComponent("is:unread in:inbox")}&maxResults=${maxResults}`;
+  const afterDate = getRecentDateFilter(3);
+  const url = `${GMAIL_BASE}/messages?q=${encodeURIComponent(`is:unread in:inbox after:${afterDate}`)}&maxResults=${maxResults}`;
   const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
   if (!res.ok) throw new Error(`Gmail list failed: ${res.status} ${await res.text()}`);
   const data = await res.json();

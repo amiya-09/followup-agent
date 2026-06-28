@@ -40,5 +40,6 @@ export async function summarizeMessage(bodyText: string): Promise<SummarizeResul
   if (!raw) {
     throw new Error("Groq returned no content to summarize (empty or malformed response)");
   }
-  return JSON.parse(raw);
+  const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+  return JSON.parse(cleaned);
 }

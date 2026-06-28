@@ -82,3 +82,10 @@ scripts — manually walked through and confirmed by eye.
       confirming no cross-account data leakage
 - [x] Lead-detail crash fixed (graceful error message instead of raw JS error)
 - [x] Manual status override (Won/Lost/Cold) added to lead detail page UI
+
+## Demo Data — Real Leads (replacing seed data) ✅ DONE
+- [x] lib/gmail.ts — sync now uses a rolling 3-day date window instead of category
+      filtering (safer: won't risk silently missing a real lead miscategorized by Gmail)
+- [x] Real Lead A (Amabani Singh) backdated to 51h — confirmed 64/CRITICAL
+- [x] Real Lead B (Amiya Singh) backdated to 28h — confirmed 31/MEDIUM
+- [x] Lead C reserved — to be sent live during the actual recording

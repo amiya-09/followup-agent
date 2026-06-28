@@ -15,7 +15,12 @@ export async function PATCH(
   }
   const user = await getOrCreateUserByEmail(session.user.email, session.user.name ?? null);
 
-  const body = await request.json();
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
   const { finalText } = body;
 
   if (!finalText || typeof finalText !== "string") {

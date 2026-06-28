@@ -38,5 +38,9 @@ Write the follow-up email body now.`;
   });
 
   const data = await response.json();
-  return data.choices?.[0]?.message?.content?.trim() ?? "";
+  const body = data.choices?.[0]?.message?.content?.trim() ?? "";
+  if (!body) {
+    throw new Error("Groq returned an empty draft");
+  }
+  return body;
 }

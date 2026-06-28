@@ -72,7 +72,11 @@ export default function LeadDetailPage() {
         body: JSON.stringify({ finalText: draftText }),
       });
       const res = await fetch(`/api/drafts/${data.draft.id}/approve`, { method: "POST" });
-      if (!res.ok) throw new Error("approve failed");
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error ?? "approve failed");
+      if (result.emailSent === false) {
+        setErrorMsg(`Recorded in thread, but Gmail send failed: ${result.emailError ?? "unknown error"}`);
+      }
       await loadLead();
     } catch {
       setErrorMsg("Something went wrong sending this. Try again.");
